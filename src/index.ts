@@ -1,30 +1,33 @@
 import undici from 'undici'
-import soap from 'soap'
-// import soap,{Client} from 'soap'
-// import pino from 'pino'
+import soap,{Client} from 'soap'
 
 export default class Saman {
   verifyURL: string = 'https://verify.sep.ir/Payments/ReferencePayment.asmx?WSDL';
   getTokenUrl: string = 'https://sep.shaparak.ir/MobilePG/MobilePayment';
-  soapClient: any = null
+  soapClient: Client | undefined
   ready: boolean = false
   terminalId:string = ''
   constructor(terminalId: string) {
     this.terminalId = terminalId
     let _this = this
-    this.soapClient = null
     this.initSoap()
       .then(client => {
         _this.soapClient = client
         _this.ready=true
-        console.log('soap client ready')
       })
   }
-  async initSoap() {
+  async initSoap() :Promise<Client>{
     return soap.createClientAsync(this.verifyURL)
   }
 
-
+  /**
+   * @param  {string} redirectUrl
+   * @param  {string} phoneNumber
+   * @param  {string} resNum
+   * @param  {number} amount
+   * @param  {object={}} extraData
+   * @returns Promise
+   */
   async getToken  (redirectUrl:string, phoneNumber:string,resNum:string,amount:number,extraData:object={}):Promise<getTokenResult>  {
       let form = {
         Action: 'Token',
@@ -46,7 +49,10 @@ export default class Saman {
       let result = await body.json();
       return result
   };
-
+  /**
+   * @param  {number} value
+   * @returns string
+   */
   getWarningMessage(value: number): string  {
 
     let codes:WarningMessages = {
@@ -69,23 +75,36 @@ export default class Saman {
     }
     return codes[value]
   }
-
-  async verifyTransaction(refNum: number, terminalId: number): Promise<number | string> {
+  /**
+   * @param  {number} refNum
+   * @param  {number} terminalId
+   * @returns Promise
+   */
+  async verifyTransaction(refNum: number, terminalId: number): Promise<verifyTransactionResult> {
     let _this = this
     if(!this.ready) this.soapClient  = await this.initSoap()
     return new Promise((resolve, reject) => {
-      this.soapClient.verifyTransaction(
+      this.soapClient?.verifyTransaction(
         { String_1: refNum, String_2: terminalId },
-        (err: null, result: verifyTransactionResult) => {
+        (err: null, result: verifyTransactionCallback) => {
           if (err) {
             return reject(err);
           }
           let {
             result: { $value },
           } = result;
-          if (Math.sign($value) === -1)
-            return resolve (_this.getWarningMessage($value))
-          return resolve($value);
+          let response: verifyTransactionResult = {
+            status: true,
+            message: 'عملیات با موفقیت انجام شد',
+            amount:$value
+          }
+          if (Math.sign($value) === -1) {
+            response.message = _this.getWarningMessage($value)
+            response.status = false
+            return resolve (response)
+          }
+
+          return resolve(response);
         },
       );
 
@@ -96,13 +115,17 @@ export default class Saman {
 
 
 
-interface verifyTransactionResult {
+interface verifyTransactionCallback {
   result: {
     attributes: {},
     $value:number
   }
 }
-
+type verifyTransactionResult = {
+  status: boolean,
+  message: string,
+  amount?:number
+}
 type WarningMessages = {
   [key: string]: string
 }
