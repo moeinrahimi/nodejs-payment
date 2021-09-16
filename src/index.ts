@@ -1,13 +1,16 @@
-// import undici from 'undici'
+import undici from 'undici'
 import soap from 'soap'
 // import soap,{Client} from 'soap'
 // import pino from 'pino'
 
 export default class Saman {
   verifyURL: string = 'https://verify.sep.ir/Payments/ReferencePayment.asmx?WSDL';
+  getTokenUrl: string = 'https://sep.shaparak.ir/MobilePG/MobilePayment';
   soapClient: any = null
-  ready:Boolean=false
-  constructor() {
+  ready: boolean = false
+  terminalId:string = ''
+  constructor(terminalId: string) {
+    this.terminalId = terminalId
     let _this = this
     this.soapClient = null
     this.initSoap()
@@ -22,36 +25,27 @@ export default class Saman {
   }
 
 
-  // getToken  (redirectUrl:String, phoneNumber:String, gateway:String, invoice:String, sku:String,)  {
-    // let { terminalId, getTokenUrl } = gateway.extra;
-    // return new Promise((resolve, reject) => {
-    //   let form = {
-    //     Action: 'Token',
-    //     Amount: invoice.amount, // RIAL
-    //     TerminalId: terminalId,
-    //     RedirectUrl: redirectUrl,
-    //     ResNum: invoice._id,
-    //     ResNum2: 26, // accounting use this to know transaction is for bento
-    //     ResNum1: sku,
-    //     ResNum3: phoneNumber,
-    //     CellNumber: phoneNumber,
-    //   };
-    //   axios({
-    //     url: getTokenUrl,
-    //     method: 'POST',
-    //     data: form,
-    //   })
-    //     .then((result) => {
-    //       if (result.data.status === 1) {
-    //         return resolve(result.data.token);
-    //       }
-    //       reject(result.data);
-    //     })
-    //     .catch((e) => {
-    //       reject(e);
-    //     });
-    // });
-  // };
+  async getToken  (redirectUrl:string, phoneNumber:string,resNum:string,amount:number,extraData:object={}):Promise<getTokenResult>  {
+      let form = {
+        Action: 'Token',
+        Amount: amount, // RIAL
+        TerminalId: this.terminalId,
+        RedirectUrl: redirectUrl,
+        ResNum: resNum,
+        ...extraData,
+        CellNumber: phoneNumber,
+      };
+
+      let { body } = await undici.request(this.getTokenUrl,{
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json'
+        },
+        body: JSON.stringify(form),
+      })
+      let result = await body.json();
+      return result
+  };
 
   getWarningMessage(value: number): string  {
 
@@ -77,10 +71,9 @@ export default class Saman {
   }
 
   async verifyTransaction(refNum: number, terminalId: number): Promise<number | string> {
-    let _this = this 
+    let _this = this
     if(!this.ready) this.soapClient  = await this.initSoap()
     return new Promise((resolve, reject) => {
-      // if (this.ready) {
       this.soapClient.verifyTransaction(
         { String_1: refNum, String_2: terminalId },
         (err: null, result: verifyTransactionResult) => {
@@ -101,12 +94,6 @@ export default class Saman {
 
 }
 
-let client = new Saman()
-const run = async ()=>{
-  console.log("🚀 ~ file: index.ts ~ line 72 ~ client", await client.verifyTransaction(1223,113688956))
-
-}
-  run()
 
 
 interface verifyTransactionResult {
@@ -118,4 +105,12 @@ interface verifyTransactionResult {
 
 type WarningMessages = {
   [key: string]: string
+}
+
+type getTokenResult = {
+  status: number,
+  errorCode: string,
+  errorDesc: string,
+  token?:string
+
 }
