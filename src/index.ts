@@ -1,12 +1,27 @@
 import { Saman } from './lib/gateways/saman';
 import { DigiPay } from './lib/gateways/digipay';
-
+type PaymentInput = {
+  terminalId?: string ,
+  username:string,
+  password:string,
+  clientId:string,
+  clientSecret:string,
+}
 class Payment {
   provider: string;
   client: Saman | DigiPay;
-  constructor(provider: string, terminalId: string) {
+  constructor(provider: string, credentials:PaymentInput) {
     this.provider = provider;
-    this.client = new Saman(terminalId);
+    switch (provider) {
+      case 'saman':
+            this.client = new Saman(credentials.terminalId);
+        break;
+      case 'digipay':
+        this.client = new DigiPay(credentials.username, credentials.password, credentials.clientId, credentials.clientSecret)
+        break
+      default:
+        throw new Error('no valid provider')
+    }
   }
 
   async createTransaction(
@@ -16,7 +31,7 @@ class Payment {
     amount: number,
     extraData: object = {}
   ) {
-    return this.client.getToken(
+    return this.client.purchase(
       redirectUrl,
       phoneNumber,
       invoiceId,
@@ -25,6 +40,9 @@ class Payment {
     );
   }
 
-  verifyTransaction() {}
+  verifyTransaction(refNum: number) {
+    console.log(this.provider,'providerr')
+    return this.client.verifyTransaction(refNum)
+  }
 }
 export { Payment, DigiPay };

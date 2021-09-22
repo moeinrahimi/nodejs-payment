@@ -31,6 +31,7 @@
     "singleQuote": true,
     "trailingComma": "es5"
   },
+  
   "name": "saman-gateway",
   "author": "moein rahimi",
   "module": "dist/saman-sdk.esm.js",
@@ -46,6 +47,7 @@
   ],
   "devDependencies": {
     "@size-limit/preset-small-lib": "^5.0.3",
+    "dotenv": "^10.0.0",
     "husky": "^7.0.2",
     "size-limit": "^5.0.3",
     "tsdx": "^0.14.1",
@@ -55,6 +57,7 @@
   "dependencies": {
     "@types/ioredis": "^4.27.4",
     "ioredis": "^4.27.9",
+    "pino": "^7.0.0-rc.6",
     "soap": "^0.42.0",
     "undici": "^4.6.0"
   }

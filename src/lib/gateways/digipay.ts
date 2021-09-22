@@ -1,5 +1,6 @@
 import undici from 'undici';
 import redis from 'ioredis';
+import pino from 'pino'
 import { Buffer } from 'buffer';
 const FormData = require('form-data');
 type accessTokenResponse = {
@@ -46,12 +47,7 @@ class DigiPay {
     this.password = password;
     this.clientId = clientId;
     this.clientSecret = clientSecret;
-    this.getAccessToken(username, password, clientId, clientSecret).then(
-      json => {
-        this.accessToken = json.access_token;
-        this.refreshToken = json.refresh_token;
-      }
-    );
+    // this.getAccessToken(username, password, clientId, clientSecret)
   }
   async getAccessToken(
     username: string,
@@ -75,6 +71,10 @@ class DigiPay {
       body: data,
     });
     let json: accessTokenResponse = await body.json();
+    this.accessToken = json.access_token;
+    this.refreshToken = json.refresh_token;
+    pino().info('ready for new transaction')
+
     return json;
   }
 
@@ -110,6 +110,7 @@ class DigiPay {
     invoiceNumber: string,
     amount: number
   ): Promise<purchaseResponse> {
+    if(!this.accessToken) await this.getAccessToken(this.username,this.password,this.clientId,this.clientSecret)
     let { body } = await undici.request(this.purchaseURL, {
       method: 'POST',
       headers: {
@@ -128,7 +129,8 @@ class DigiPay {
     return body.json();
   }
 
-  async verifyTransaction(trackingCode: string) {
+  async verifyTransaction(trackingCode: number) {
+    if(!this.accessToken) await this.getAccessToken(this.username,this.password,this.clientId,this.clientSecret)
     let { body } = await undici.request(`${this.verifyURL}/${trackingCode}`, {
       method: 'POST',
       headers: {

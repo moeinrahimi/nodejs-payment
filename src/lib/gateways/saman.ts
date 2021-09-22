@@ -8,7 +8,8 @@ class Saman {
   soapClient: Client | undefined;
   ready: boolean = false;
   terminalId: string = '';
-  constructor(terminalId: string) {
+  constructor(terminalId: string | undefined) {
+    if(!terminalId) throw new Error('no terminalId')
     this.terminalId = terminalId;
     let _this = this;
     this.initSoap().then(client => {
@@ -28,7 +29,7 @@ class Saman {
    * @param  {object={}} extraData
    * @returns Promise
    */
-  async getToken(
+  async purchase(
     redirectUrl: string,
     phoneNumber: string,
     resNum: string,
@@ -89,14 +90,13 @@ class Saman {
    * @returns Promise
    */
   async verifyTransaction(
-    refNum: number,
-    terminalId: number
+    refNum: number
   ): Promise<verifyTransactionResult> {
     let _this = this;
     if (!this.ready) this.soapClient = await this.initSoap();
     return new Promise((resolve, reject) => {
       this.soapClient?.verifyTransaction(
-        { String_1: refNum, String_2: terminalId },
+        { String_1: refNum, String_2: this.terminalId },
         (err: null, result: verifyTransactionCallback) => {
           if (err) {
             return reject(err);
