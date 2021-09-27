@@ -41,6 +41,7 @@ let payment = new Payment('digipay', {
   password: result.parsed.PASSWORD_TEST,
   clientId: result.parsed.CLIENT_ID,
   clientSecret: result.parsed.CLIENT_SECRET_TEST,
+  redisConnectionString:'127.0.0.1:6379' // to store refreshToken
 });
 let redirectUrl = 'http://localhost:8080';
 let phoneNumber = '09405478412';
