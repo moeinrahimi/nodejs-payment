@@ -16,6 +16,5 @@ describe('payment verify', () => {
     expect(res).toHaveProperty('statusCode');
     expect(res).toHaveProperty('result');
     done();
-
   });
 });
