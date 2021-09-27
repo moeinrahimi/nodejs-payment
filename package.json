@@ -15,7 +15,7 @@
     "build": "tsdx build",
     "test": "tsdx test",
     "lint": "tsdx lint",
-    "prepare": "tsdx build",
+    "prepare": "tsdx build && husky install",
     "size": "size-limit",
     "analyze": "size-limit --why"
   },
@@ -31,7 +31,6 @@
     "singleQuote": true,
     "trailingComma": "es5"
   },
-  
   "name": "saman-gateway",
   "author": "moein rahimi",
   "module": "dist/saman-sdk.esm.js",
@@ -48,7 +47,7 @@
   "devDependencies": {
     "@size-limit/preset-small-lib": "^5.0.3",
     "dotenv": "^10.0.0",
-    "husky": "^7.0.2",
+    "husky": "^7.0.0",
     "size-limit": "^5.0.3",
     "tsdx": "^0.14.1",
     "tslib": "^2.3.1",
