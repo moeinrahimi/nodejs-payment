@@ -2,8 +2,7 @@
 
 # installation
 ```
-
-npm i persianPayment
+npm install payment
 ```
 there are two main method named createTransaction and verifyTransaction.
 # Example Usage of Saman

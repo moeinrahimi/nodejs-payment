@@ -31,16 +31,24 @@
     "singleQuote": true,
     "trailingComma": "es5"
   },
-  "name": "saman-gateway",
+  "name": "payment",
   "author": "moein rahimi",
-  "module": "dist/saman-sdk.esm.js",
+  "description": "payment gateway for iranian providers",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/moeinrahimi/nodejs-payment"
+  },
+  "bugs": {
+    "url": "https://github.com/moeinrahimi/nodejs-payment/issues"
+  },
+  "module": "dist/payment.esm.js",
   "size-limit": [
     {
-      "path": "dist/saman-sdk.cjs.production.min.js",
+      "path": "dist/payment.cjs.production.min.js",
       "limit": "10 KB"
     },
     {
-      "path": "dist/saman-sdk.esm.js",
+      "path": "dist/payment.esm.js",
       "limit": "10 KB"
     }
   ],
@@ -56,7 +64,6 @@
   "dependencies": {
     "@types/ioredis": "^4.27.4",
     "ioredis": "^4.27.9",
-    "pino": "^7.0.0-rc.6",
     "soap": "^0.42.0",
     "undici": "^4.6.0"
   }
