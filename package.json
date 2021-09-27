@@ -31,7 +31,7 @@
     "singleQuote": true,
     "trailingComma": "es5"
   },
-  "name": "payment",
+  "name": "node-payment",
   "author": "moein rahimi",
   "description": "payment gateway for iranian providers",
   "repository": {
