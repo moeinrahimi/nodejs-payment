@@ -3,7 +3,7 @@ import { Payment } from '../src/index';
 let result = dotenv.config();
 
 describe('payment verify', () => {
-  test('verify transaction', async () => {
+  test('verify transaction', async done => {
     if (!result.parsed) throw new Error('no .env found');
     let payment = new Payment('digipay', {
       username: result.parsed.USERNAME,
@@ -15,6 +15,7 @@ describe('payment verify', () => {
     let res = await payment.verifyTransaction(trackingCode);
     expect(res).toHaveProperty('statusCode');
     expect(res).toHaveProperty('result');
-    console.log('🚀 ~ file: blah.test.ts ~ line 11 ~ it ~ res', res);
+    done();
+
   });
 });

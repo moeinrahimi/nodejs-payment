@@ -6,7 +6,7 @@ type PaymentInput = {
   password: string;
   clientId: string;
   clientSecret: string;
-  redisConnectionString: string;
+  redisConnectionString?: string;
 };
 class Payment {
   provider: string;

@@ -1,9 +1,7 @@
 import undici from 'undici';
 import redis from 'ioredis';
-// import pino from 'pino'
 import { Buffer } from 'buffer';
 const FormData = require('form-data');
-
 type accessTokenResponse = {
   access_token: string;
   token_type: string;
@@ -20,14 +18,13 @@ type purchaseResponse = {
     message: string;
     level: string;
   };
-
   payUrl: string;
   ticket: string;
 };
 
 class DigiPay {
-  baseURL: string = 'https://api.mydigipay.com/digipay/api';
-  // baseURL_TEST: string = 'https://uat.mydigipay.info';
+  baseURL: string = 'https://uat.mydigipay.info/digipay/api';
+  // baseURL: string = 'https://api.mydigipay.com/digipay/api';
   getTokenURL: string = `${this.baseURL}/oauth/token`;
   purchaseURL: string = `${this.baseURL}/businesses/ticket?type=0`;
   verifyURL: string = `${this.baseURL}/purchases/verify`;
@@ -67,62 +64,75 @@ class DigiPay {
     invoiceNumber: string,
     amount: number
   ): Promise<purchaseResponse> {
-    if (!this.accessToken) await await this.refreshTokenHandler();
-    let { statusCode, body } = await undici.request(this.purchaseURL, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${this.accessToken}`,
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify({
-        amount: amount, // Rial
-        cellNumber: phoneNumber,
-        providerId: invoiceNumber,
-        redirectUrl: redirectUrl,
-        userType: 0,
-      }),
-    });
-    let res = undefined;
-    if (statusCode === 200) res = await body.json();
-    return {
-      statusCode: statusCode,
-      ...res,
-    };
-  }
-
-  async verifyTransaction(trackingCode: number) {
-    if (!this.accessToken) await this.refreshTokenHandler();
-    let { statusCode, body } = await undici.request(
-      `${this.verifyURL}/${trackingCode}`,
-      {
+    return new Promise(async (resolve, reject) => {
+      if (!this.accessToken)
+        await this.refreshTokenHandler().catch(e => reject(e));
+      let { statusCode, body } = await undici.request(this.purchaseURL, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${this.accessToken}`,
+          'content-type': 'application/json',
         },
-      }
-    );
-    let res = await body.json();
-    return {
-      statusCode,
-      ...res,
-    };
+        body: JSON.stringify({
+          amount: amount, // Rial
+          cellNumber: phoneNumber,
+          providerId: invoiceNumber,
+          redirectUrl: redirectUrl,
+          userType: 0,
+        }),
+      });
+      let res = await body.json();
+      return resolve({
+        statusCode: statusCode,
+        ...res,
+      });
+    });
+  }
+
+  async verifyTransaction(trackingCode: number) {
+    return new Promise(async (resolve, reject) => {
+      if (!this.accessToken)
+        await this.refreshTokenHandler().catch(e => reject(e));
+      let { statusCode, body } = await undici.request(
+        `${this.verifyURL}/${trackingCode}`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${this.accessToken}`,
+          },
+        }
+      );
+      let res = await body.json();
+      return resolve({
+        statusCode,
+        ...res,
+      });
+    });
   }
 
   async refreshTokenHandler() {
-    let credentials = await this.redis.get('DIGIPAY_ACCESS_TOKEN');
-    let data;
-    if (credentials) {
-      credentials = JSON.parse(credentials);
-      let result = await this.refreshRequest(credentials.refresh_token);
-      data = result;
-    } else {
-      let result = await this.getAccessToken(this.username, this.password);
-      data = result;
-    }
-    this.accessToken = data.access_token;
-    this.refreshToken = data.refresh_token;
-    this.redis.set('DIGIPAY_ACCESS_TOKEN', JSON.stringify(data));
-    return data;
+    return new Promise(async (resolve, reject) => {
+      let credentials = await this.redis.get('DIGIPAY_ACCESS_TOKEN');
+      let data;
+      if (credentials) {
+        credentials = JSON.parse(credentials);
+        data = await this.refreshRequest(credentials.refresh_token);
+        if (!data) reject({ ...credentials, head: this.AUTH_HEADER });
+      } else {
+        data = await this.getAccessToken(this.username, this.password);
+        if (!data.access_token)
+          return reject({
+            ...data,
+            username: this.username,
+            password: this.password,
+            header: this.AUTH_HEADER,
+          });
+      }
+      this.accessToken = data.access_token;
+      this.refreshToken = data.refresh_token;
+      this.redis.set('DIGIPAY_ACCESS_TOKEN', JSON.stringify(data));
+      return resolve(data);
+    });
   }
 
   async getAccessToken(
@@ -133,7 +143,7 @@ class DigiPay {
     data.append('username', username);
     data.append('password', password);
     data.append('grant_type', 'password');
-    let { body, statusCode } = await undici.request(this.getTokenURL, {
+    let { body } = await undici.request(this.getTokenURL, {
       method: 'POST',
       headers: {
         Authorization: `Basic ${this.AUTH_HEADER}`,
@@ -144,23 +154,14 @@ class DigiPay {
     let json: accessTokenResponse = await body.json();
     this.accessToken = json.access_token;
     this.refreshToken = json.refresh_token;
-    if (statusCode !== 200) throw new Error(json.error);
-    // pino().info('ready for new transaction',json,statusCode)
     return json;
-  }
-
-  async getCredentials() {
-    let data = JSON.parse(await this.redis.get('DIGIPAY_ACCESS_TOKEN'));
-    if (!data) data = await this.refreshTokenHandler();
-    return data;
   }
 
   async refreshRequest(refresh_token: string) {
     let data = new FormData();
     data.append('refresh_token', refresh_token);
     data.append('grant_type', 'refresh_token');
-    let url = `${this.baseURL}/digipay/api/oauth/token`;
-    let { body } = await undici.request(url, {
+    let { body } = await undici.request(this.getTokenURL, {
       method: 'POST',
       headers: {
         Authorization: `Basic ${this.AUTH_HEADER}`,
