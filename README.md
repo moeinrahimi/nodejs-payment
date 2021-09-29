@@ -3,9 +3,7 @@
 # installation
 
 ```
-
-npm install node-payment
-
+npm install node-payment or yarn add node-payment
 ```
 
 there are two main method named createTransaction and verifyTransaction.

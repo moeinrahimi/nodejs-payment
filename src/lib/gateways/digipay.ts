@@ -49,7 +49,8 @@ class DigiPay {
     this.clientId = clientId;
     this.clientSecret = clientSecret;
     this.setAuthHeader();
-    this.refreshTokenHandler();
+    let ms = 3000000; // 50 minutes
+    setInterval(this.refreshTokenHandler, ms);
   }
 
   setAuthHeader() {
