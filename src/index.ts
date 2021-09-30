@@ -2,10 +2,10 @@ import { Saman } from './lib/gateways/saman';
 import { DigiPay } from './lib/gateways/digipay';
 type PaymentInput = {
   terminalId?: string;
-  username: string;
-  password: string;
-  clientId: string;
-  clientSecret: string;
+  username?: string;
+  password?: string;
+  clientId?: string;
+  clientSecret?: string;
   redisConnectionString?: string;
 };
 class Payment {
@@ -18,6 +18,8 @@ class Payment {
         this.client = new Saman(credentials.terminalId);
         break;
       case 'digipay':
+        if (!credentials.username || !credentials.password || !credentials.clientId || !credentials.clientSecret)
+        throw new Error('input wrong')
         this.client = new DigiPay(
           credentials.username,
           credentials.password,

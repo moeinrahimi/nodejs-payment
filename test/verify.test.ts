@@ -14,7 +14,7 @@ describe('payment verify', () => {
     let trackingCode = 2785759241632388583558;
     let res = await payment.verifyTransaction(trackingCode);
     expect(res).toHaveProperty('statusCode');
-    expect(res).toHaveProperty('result');
+    expect(res).toHaveProperty('raw');
     done();
   });
 });

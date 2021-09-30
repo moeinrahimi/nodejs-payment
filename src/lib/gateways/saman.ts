@@ -1,5 +1,7 @@
 import undici from 'undici';
-import soap, { Client } from 'soap';
+import { Client } from 'soap';
+const soap = require( 'soap');
+import { purchase,verifyTransaction } from './types'
 
 class Saman {
   verifyURL: string =
@@ -17,7 +19,7 @@ class Saman {
       _this.ready = true;
     });
   }
-  async initSoap(): Promise<Client> {
+  initSoap(): Promise<Client> {
     return soap.createClientAsync(this.verifyURL);
   }
 
@@ -35,7 +37,7 @@ class Saman {
     resNum: string,
     amount: number,
     extraData: object = {}
-  ): Promise<getTokenResult> {
+  ): Promise<purchase> {
     let form = {
       Action: 'Token',
       Amount: amount, // RIAL
@@ -54,7 +56,13 @@ class Saman {
       body: JSON.stringify(form),
     });
     let result = await body.json();
-    return result;
+    let purchaseObject: purchase = {
+      status: result.status === 1 ? true : false,
+      message: result.status === -1 ? result.errorDesc : 'توکن جدید با موفقیت دریافت شد',
+      statusCode:result.errorCode,
+      raw:result
+    }
+    return purchaseObject;
   }
   /**
    * @param  {number} value
@@ -89,7 +97,7 @@ class Saman {
    * @param  {number} terminalId
    * @returns Promise
    */
-  async verifyTransaction(refNum: number): Promise<verifyTransactionResult> {
+  async verifyTransaction(refNum: number): Promise<verifyTransaction> {
     let _this = this;
     if (!this.ready) this.soapClient = await this.initSoap();
     return new Promise((resolve, reject) => {
@@ -102,13 +110,16 @@ class Saman {
           let {
             result: { $value },
           } = result;
-          let response: verifyTransactionResult = {
+          let response: verifyTransaction = {
             status: true,
+            statusCode:0,
             message: 'عملیات با موفقیت انجام شد',
             amount: $value,
+            raw:result
           };
           if (Math.sign($value) === -1) {
             response.message = _this.getWarningMessage($value);
+            response.statusCode = -1;
             response.status = false;
             return resolve(response);
           }
@@ -126,19 +137,9 @@ interface verifyTransactionCallback {
     $value: number;
   };
 }
-type verifyTransactionResult = {
-  status: boolean;
-  message: string;
-  amount?: number;
-};
+
 type WarningMessages = {
   [key: string]: string;
 };
 
-type getTokenResult = {
-  status: number;
-  errorCode: string;
-  errorDesc: string;
-  token?: string;
-};
 export { Saman };

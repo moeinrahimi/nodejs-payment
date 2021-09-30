@@ -20,7 +20,7 @@ describe('payment', () => {
       .createTransaction(redirectUrl, phoneNumber, invoiceNumber, amount)
       .catch((e: string) => console.log(e));
     expect(res).toHaveProperty('statusCode', 200);
-    expect(res).toHaveProperty('result');
+    expect(res).toHaveProperty('raw');
     done();
   });
 });
