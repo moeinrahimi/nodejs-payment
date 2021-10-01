@@ -43,9 +43,10 @@ class DigiPay {
     password: string,
     clientId: string,
     clientSecret: string,
-    redisConnectionString: string = '127.0.0.1:6379' //TODO:redis h
+    redisConnectionString: string | undefined
   ) {
-    this.redis = new redis(redisConnectionString);
+    if(redisConnectionString)
+      this.redis = new redis(redisConnectionString);
     this.username = username;
     this.password = password;
     this.clientId = clientId;
@@ -121,7 +122,7 @@ class DigiPay {
 
   async refreshTokenHandler() {
     return new Promise(async (resolve, reject) => {
-      let credentials = await this.redis.get('DIGIPAY_ACCESS_TOKEN');
+      let credentials = await this.redis?.get('DIGIPAY_ACCESS_TOKEN');
       let data;
       if (credentials) {
         credentials = JSON.parse(credentials);
@@ -139,7 +140,7 @@ class DigiPay {
       }
       this.accessToken = data.access_token;
       this.refreshToken = data.refresh_token;
-      this.redis.set('DIGIPAY_ACCESS_TOKEN', JSON.stringify(data));
+      this.redis?.set('DIGIPAY_ACCESS_TOKEN', JSON.stringify(data));
       return resolve(data);
     });
   }
