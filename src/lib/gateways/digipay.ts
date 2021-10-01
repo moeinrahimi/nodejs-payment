@@ -25,8 +25,8 @@ type purchaseResponse = {
 };
 
 class DigiPay {
-  baseURL: string = 'https://uat.mydigipay.info/digipay/api';
-  // baseURL: string = 'https://api.mydigipay.com/digipay/api';
+  // baseURL: string = 'https://uat.mydigipay.info/digipay/api'; //test
+  baseURL: string = 'https://api.mydigipay.com/digipay/api'; //live
   getTokenURL: string = `${this.baseURL}/oauth/token`;
   purchaseURL: string = `${this.baseURL}/businesses/ticket?type=0`;
   verifyURL: string = `${this.baseURL}/purchases/verify`;
