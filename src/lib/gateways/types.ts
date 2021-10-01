@@ -1,19 +1,17 @@
 type purchase = {
   status: boolean;
-  statusCode:number,
+  statusCode: number;
   message: string;
   token?: string;
-  raw:object // original api payload
+  raw: object; // original api payload
 };
-
 
 type verifyTransaction = {
   status: boolean;
-  statusCode:number,
+  statusCode: number;
   message: string;
   amount?: number;
-  raw:object
+  raw: object;
 };
 
-
-export{purchase,verifyTransaction}
+export { purchase, verifyTransaction };

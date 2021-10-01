@@ -1,7 +1,7 @@
 import undici from 'undici';
 import { Client } from 'soap';
-const soap = require( 'soap');
-import { purchase,verifyTransaction } from './types'
+import { purchase, verifyTransaction } from './types';
+const soap = require('soap');
 
 class Saman {
   verifyURL: string =
@@ -58,10 +58,13 @@ class Saman {
     let result = await body.json();
     let purchaseObject: purchase = {
       status: result.status === 1 ? true : false,
-      message: result.status === -1 ? result.errorDesc : 'توکن جدید با موفقیت دریافت شد',
-      statusCode:result.errorCode,
-      raw:result
-    }
+      message:
+        result.status === -1
+          ? result.errorDesc
+          : 'توکن جدید با موفقیت دریافت شد',
+      statusCode: result.errorCode,
+      raw: result,
+    };
     return purchaseObject;
   }
   /**
@@ -112,10 +115,10 @@ class Saman {
           } = result;
           let response: verifyTransaction = {
             status: true,
-            statusCode:0,
+            statusCode: 0,
             message: 'عملیات با موفقیت انجام شد',
             amount: $value,
-            raw:result
+            raw: result,
           };
           if (Math.sign($value) === -1) {
             response.message = _this.getWarningMessage($value);

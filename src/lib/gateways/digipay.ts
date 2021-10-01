@@ -1,8 +1,8 @@
 import undici from 'undici';
 import redis from 'ioredis';
 import { Buffer } from 'buffer';
+import { purchase, verifyTransaction } from './types';
 const FormData = require('form-data');
-import { purchase, verifyTransaction } from './types'
 
 type accessTokenResponse = {
   access_token: string;
@@ -43,7 +43,7 @@ class DigiPay {
     password: string,
     clientId: string,
     clientSecret: string,
-    redisConnectionString: string = '127.0.0.1:6379'//TODO:redis h
+    redisConnectionString: string = '127.0.0.1:6379' //TODO:redis h
   ) {
     this.redis = new redis(redisConnectionString);
     this.username = username;
@@ -84,19 +84,19 @@ class DigiPay {
           userType: 0,
         }),
       });
-      let res:purchaseResponse = await body.json();
+      let res: purchaseResponse = await body.json();
       let purchaseObject: purchase = {
         status: res.payUrl ? true : false,
-        statusCode:statusCode,
+        statusCode: statusCode,
         message: res.payUrl ? 'توکن با موفقیت دریافت شد' : 'مشکلی پیش آمده است',
-        token:res.payUrl?res.payUrl: '',
-        raw:res
-      }
+        token: res.payUrl ? res.payUrl : '',
+        raw: res,
+      };
       return resolve(purchaseObject);
     });
   }
 
-  async verifyTransaction(trackingCode: number):Promise<verifyTransaction> {
+  async verifyTransaction(trackingCode: number): Promise<verifyTransaction> {
     return new Promise(async (resolve, reject) => {
       if (!this.accessToken)
         await this.refreshTokenHandler().catch(e => reject(e));
@@ -112,9 +112,9 @@ class DigiPay {
       let res = await body.json();
       return resolve({
         status: res.status === 0 ? true : false,
-        message:res.result.message,
-        statusCode:statusCode,
-        raw:res
+        message: res.result.message,
+        statusCode: statusCode,
+        raw: res,
       });
     });
   }

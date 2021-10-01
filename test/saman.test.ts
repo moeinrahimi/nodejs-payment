@@ -4,10 +4,10 @@ import { Payment } from '../src/index';
 let result = dotenv.config();
 
 describe('payment', () => {
-  test('saman purchase',  () => {
+  test('saman purchase', () => {
     if (!result.parsed) throw new Error('no .env found');
     let payment = new Payment('saman', {
-      terminalId:result.parsed.TERMINAL_ID
+      terminalId: result.parsed.TERMINAL_ID,
     });
     let redirectUrl = 'http://localhost';
     let phoneNumber = '09405478411';
@@ -17,7 +17,6 @@ describe('payment', () => {
       .createTransaction(redirectUrl, phoneNumber, invoiceNumber, amount)
       .then(res => {
         expect(res).toHaveProperty('status');
-
-    })
+      });
   });
 });

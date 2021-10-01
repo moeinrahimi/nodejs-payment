@@ -18,8 +18,13 @@ class Payment {
         this.client = new Saman(credentials.terminalId);
         break;
       case 'digipay':
-        if (!credentials.username || !credentials.password || !credentials.clientId || !credentials.clientSecret)
-        throw new Error('input wrong')
+        if (
+          !credentials.username ||
+          !credentials.password ||
+          !credentials.clientId ||
+          !credentials.clientSecret
+        )
+          throw new Error('input wrong');
         this.client = new DigiPay(
           credentials.username,
           credentials.password,
